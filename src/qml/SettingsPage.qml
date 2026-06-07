@@ -42,12 +42,12 @@ Item {
             spacing: 8
 
             Button {
-                text: qsTr("返回")
+                text: "Back"
                 onClicked: root.backRequested()
             }
 
             Label {
-                text: qsTr("配置中心")
+                text: "Settings Center"
                 color: sysPalette.windowText
                 font.pixelSize: 28
                 font.bold: true
@@ -68,9 +68,9 @@ Item {
 
             Repeater {
                 model: [
-                    qsTr("软件通用配置"),
-                    qsTr("API 配置"),
-                    qsTr("快捷键配置")
+                    "General Settings",
+                    "API Settings",
+                    "Shortcuts"
                 ]
 
                 Button {
@@ -98,42 +98,13 @@ Item {
                     spacing: 6
 
                     GroupBox {
-                        title: qsTr("通用")
-                        Layout.fillWidth: true
-
-                        ColumnLayout {
-                            width: parent.width
-                            spacing: 6
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 6
-
-                                Label {
-                                    text: qsTr("Language")
-                                    color: sysPalette.text
-                                    Layout.preferredWidth: 120
-                                }
-
-                                ComboBox {
-                                    id: languageCombo
-                                    model: ["system", "en", "zh-cn"]
-                                    currentIndex: ["system", "en", "zh-cn"].indexOf(root.config.language ?? "system")
-                                    Layout.fillWidth: true
-                                    onActivated: {
-                                        if (root.config) {
-                                            root.config.language = currentText;
-                                            deepSeekConfigManager.setLanguage(currentText);
-                                            root.persistConfig();
-                                        }
-                                    }
-                                }
-                            }
+                        title: "Interface"
+                        label: Label {
+                            text: parent.title
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: sysPalette.windowText
                         }
-                    }
-
-                    GroupBox {
-                        title: qsTr("界面")
                         Layout.fillWidth: true
 
                         ColumnLayout {
@@ -145,7 +116,7 @@ Item {
                                 spacing: 6
 
                                 Label {
-                                    text: qsTr("Font size")
+                                    text: "Font size"
                                     color: sysPalette.text
                                     Layout.preferredWidth: 120
                                 }
@@ -170,7 +141,13 @@ Item {
                     spacing: 6
 
                     GroupBox {
-                        title: qsTr("API 配置")
+                        title: "API Settings"
+                        label: Label {
+                            text: parent.title
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: sysPalette.windowText
+                        }
                         Layout.fillWidth: true
 
                         ColumnLayout {
@@ -182,7 +159,7 @@ Item {
                                 spacing: 6
 
                                 Label {
-                                    text: qsTr("Base URL")
+                                    text: "Base URL"
                                     color: sysPalette.text
                                     Layout.preferredWidth: 120
                                 }
@@ -190,7 +167,12 @@ Item {
                                 TextField {
                                     Layout.fillWidth: true
                                     text: root.config.base_url ?? "https://api.deepseek.com"
-                                    placeholderText: qsTr("https://api.deepseek.com")
+                                    placeholderText: "https://api.deepseek.com"
+                                    background: Rectangle {
+                                        color: sysPalette.base
+                                        border.color: sysPalette.mid
+                                        radius: 4
+                                    }
                                     onTextEdited: {
                                         if (root.config) root.config.base_url = text;
                                         root.persistConfig();
@@ -203,7 +185,7 @@ Item {
                                 spacing: 6
 
                                 Label {
-                                    text: qsTr("API Key")
+                                    text: "API Key"
                                     color: sysPalette.text
                                     Layout.preferredWidth: 120
                                 }
@@ -212,7 +194,12 @@ Item {
                                     Layout.fillWidth: true
                                     echoMode: TextInput.Password
                                     text: root.config.api_key ?? ""
-                                    placeholderText: qsTr("Enter your DeepSeek API key")
+                                    placeholderText: "Enter your DeepSeek API key"
+                                    background: Rectangle {
+                                        color: sysPalette.base
+                                        border.color: sysPalette.mid
+                                        radius: 4
+                                    }
                                     onTextEdited: {
                                         if (root.config) root.config.api_key = text;
                                         root.persistConfig();
@@ -223,7 +210,13 @@ Item {
                     }
 
                     GroupBox {
-                        title: qsTr("模型与提示词")
+                        title: "Models and Prompts"
+                        label: Label {
+                            text: parent.title
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: sysPalette.windowText
+                        }
                         Layout.fillWidth: true
 
                         ColumnLayout {
@@ -235,7 +228,7 @@ Item {
                                 spacing: 6
 
                                 Label {
-                                    text: qsTr("Model")
+                                    text: "Model"
                                     color: sysPalette.text
                                     Layout.preferredWidth: 120
                                 }
@@ -243,6 +236,11 @@ Item {
                                 TextField {
                                     Layout.fillWidth: true
                                     text: root.config.model ?? ""
+                                    background: Rectangle {
+                                        color: sysPalette.base
+                                        border.color: sysPalette.mid
+                                        radius: 4
+                                    }
                                     onTextEdited: {
                                         if (root.config) root.config.model = text;
                                         root.persistConfig();
@@ -255,7 +253,7 @@ Item {
                                 spacing: 6
 
                                 Label {
-                                    text: qsTr("System prompt")
+                                    text: "System prompt"
                                     color: sysPalette.text
                                     Layout.preferredWidth: 120
                                 }
@@ -265,18 +263,28 @@ Item {
                                     implicitHeight: 96
                                     wrapMode: TextEdit.WordWrap
                                     text: root.config.system_prompt ?? ""
+                                    background: Rectangle {
+                                        color: sysPalette.base
+                                        border.color: sysPalette.mid
+                                        radius: 4
+                                    }
                                     onTextChanged: {
                                         if (root.config) root.config.system_prompt = text;
                                         root.persistConfig();
                                     }
-                                    background: Item {}
                                 }
                             }
                         }
                     }
 
                     GroupBox {
-                        title: qsTr("生成控制")
+                        title: "Generation Controls"
+                        label: Label {
+                            text: parent.title
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: sysPalette.windowText
+                        }
                         Layout.fillWidth: true
 
                         GridLayout {
@@ -285,7 +293,7 @@ Item {
                             rowSpacing: 6
                             width: parent.width
 
-                            Label { text: qsTr("Temperature"); color: sysPalette.text }
+                            Label { text: "Temperature"; color: sysPalette.text }
                             Slider {
                                 from: 0
                                 to: 1
@@ -298,7 +306,7 @@ Item {
                                 }
                             }
 
-                            Label { text: qsTr("Top P"); color: sysPalette.text }
+                            Label { text: "Top P"; color: sysPalette.text }
                             Slider {
                                 from: 0
                                 to: 1
@@ -311,7 +319,7 @@ Item {
                                 }
                             }
 
-                            Label { text: qsTr("Max tokens"); color: sysPalette.text }
+                            Label { text: "Max tokens"; color: sysPalette.text }
                             SpinBox {
                                 from: 256
                                 to: 8192
@@ -325,7 +333,13 @@ Item {
                     }
 
                     GroupBox {
-                        title: qsTr("风格与上下文")
+                        title: "Style and Context"
+                        label: Label {
+                            text: parent.title
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: sysPalette.windowText
+                        }
                         Layout.fillWidth: true
 
                         GridLayout {
@@ -334,7 +348,7 @@ Item {
                             rowSpacing: 6
                             width: parent.width
 
-                            Label { text: qsTr("Style"); color: sysPalette.text }
+                            Label { text: "Style"; color: sysPalette.text }
                             ComboBox {
                                 model: ["fluent", "precise", "formal"]
                                 currentIndex: ["fluent", "precise", "formal"].indexOf(root.config.style ?? "fluent")
@@ -345,7 +359,7 @@ Item {
                                 }
                             }
 
-                            Label { text: qsTr("Context mode"); color: sysPalette.text }
+                            Label { text: "Context mode"; color: sysPalette.text }
                             ComboBox {
                                 model: ["document", "conversation", "mixed"]
                                 currentIndex: ["document", "conversation", "mixed"].indexOf(root.config.context_mode ?? "document")
@@ -356,7 +370,7 @@ Item {
                                 }
                             }
 
-                            Label { text: qsTr("Chunk size"); color: sysPalette.text }
+                            Label { text: "Chunk size"; color: sysPalette.text }
                             SpinBox {
                                 from: 200
                                 to: 4000
@@ -369,50 +383,19 @@ Item {
                             }
                         }
                     }
-
-                    GroupBox {
-                        title: qsTr("特性开关")
-                        Layout.fillWidth: true
-
-                        ColumnLayout {
-                            width: parent.width
-                            spacing: 6
-
-                            CheckBox {
-                                text: qsTr("Glossary")
-                                checked: root.config.glossary ?? true
-                                onToggled: {
-                                    if (root.config) root.config.glossary = checked;
-                                    root.persistConfig();
-                                }
-                            }
-
-                            CheckBox {
-                                text: qsTr("Preserve format")
-                                checked: root.config.preserve_format ?? true
-                                onToggled: {
-                                    if (root.config) root.config.preserve_format = checked;
-                                    root.persistConfig();
-                                }
-                            }
-
-                            CheckBox {
-                                text: qsTr("Consistency mode")
-                                checked: root.config.consistency_mode ?? true
-                                onToggled: {
-                                    if (root.config) root.config.consistency_mode = checked;
-                                    root.persistConfig();
-                                }
-                            }
-                        }
-                    }
                 }
 
                 ColumnLayout {
                     spacing: 6
 
                     GroupBox {
-                        title: qsTr("快捷键")
+                        title: "Shortcuts"
+                        label: Label {
+                            text: parent.title
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: sysPalette.windowText
+                        }
                         Layout.fillWidth: true
 
                         ColumnLayout {
@@ -420,30 +403,14 @@ Item {
                             spacing: 6
 
                             Label {
-                                text: qsTr("Ctrl + Enter：开始翻译")
+                                text: "Ctrl + Enter: start translation"
                                 color: sysPalette.text
                             }
 
                             Label {
-                                text: qsTr("Esc：返回主页面")
+                                text: "Ctrl + ,: open settings"
                                 color: sysPalette.text
                             }
-
-                            Label {
-                                text: qsTr("Ctrl + ,：打开设置页")
-                                color: sysPalette.text
-                            }
-                        }
-                    }
-
-                    GroupBox {
-                        title: qsTr("建议")
-                        Layout.fillWidth: true
-
-                        Label {
-                            text: qsTr("后续可继续补充自定义快捷键与按键冲突提示。")
-                            color: sysPalette.text
-                            wrapMode: Label.WordWrap
                         }
                     }
                 }

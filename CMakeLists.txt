@@ -21,12 +21,6 @@ qt_add_qml_module(appm-translate-qt
         src/qml/SettingsPage.qml
 )
 
-qt_add_resources(appm-translate-qt "translations"
-    PREFIX "/"
-    FILES
-        src/translations/m-translate-qt_en.qm
-)
-
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.

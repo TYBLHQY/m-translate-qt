@@ -9,6 +9,8 @@ Item {
     SystemPalette { id: sysPalette }
 
     property string result: ""
+    property bool isSending: false
+    property bool hasError: false
     signal openSettings()
     readonly property real contentMargin: 5
     readonly property real layoutSpacing: 5
@@ -17,9 +19,15 @@ Item {
     function sendTranslation()
     {
         if (!sourceInput.text || !sourceInput.text.trim()) {
-            root.result = qsTr("Please enter some text to translate.");
+            root.isSending = false;
+            root.hasError = true;
+            root.result = "Please enter some text to translate.";
             return;
         }
+
+        root.isSending = true;
+        root.hasError = false;
+        root.result = "";
 
         var currentConfig = deepSeekConfigManager.loadConfig();
         var apiUrl = (currentConfig && currentConfig.base_url) ? currentConfig.base_url : "https://api.deepseek.com";
@@ -28,13 +36,17 @@ Item {
             apiUrl += "/chat/completions";
 
         var xhr = new XMLHttpRequest();
+        xhr.timeout = 30000;
         xhr.open("POST", apiUrl, true);
         xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Accept", "application/json");
         xhr.setRequestHeader("Authorization", "Bearer " + ((currentConfig && currentConfig.api_key) ? currentConfig.api_key : ""));
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState !== XMLHttpRequest.DONE)
                 return;
+
+            root.isSending = false;
 
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
@@ -46,13 +58,28 @@ Item {
                         else if (data.choices[0].text)
                             text = data.choices[0].text;
                     }
-                    root.result = text || xhr.responseText;
+                    root.hasError = false;
+                    root.result = text || xhr.responseText || "No translation returned by the server.";
                 } catch (e) {
-                    root.result = xhr.responseText || qsTr("Failed to parse the translation response.");
+                    root.hasError = true;
+                    root.result = xhr.responseText || "Failed to parse the translation response.";
                 }
             } else {
-                root.result = qsTr("Request failed: ") + xhr.status + " " + (xhr.statusText || "") + "\n" + (xhr.responseText || "");
+                root.hasError = true;
+                root.result = "Request failed: " + xhr.status + " " + (xhr.statusText || "") + "\n" + (xhr.responseText || "Please check the API settings and try again.");
             }
+        };
+
+        xhr.onerror = function () {
+            root.isSending = false;
+            root.hasError = true;
+            root.result = "Network error. Please check your connection and API settings, then try again.";
+        };
+
+        xhr.ontimeout = function () {
+            root.isSending = false;
+            root.hasError = true;
+            root.result = "Request timed out. Please try again.";
         };
 
         var payload = {
@@ -60,7 +87,7 @@ Item {
             messages: [
                 {
                     role: "system",
-                    content: (currentConfig && currentConfig.system_prompt) ? currentConfig.system_prompt : "你是专业翻译引擎，逐句忠实翻译，不添加解释"
+                    content: (currentConfig && currentConfig.system_prompt) ? currentConfig.system_prompt : "You are a professional translation engine. Translate sentence by sentence faithfully without adding explanations."
                 },
                 {
                     role: "user",
@@ -112,6 +139,7 @@ Item {
                 }
 
                 ToolButton {
+                    id: sendButton
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     anchors.margins: 4
@@ -120,6 +148,7 @@ Item {
                     flat: true
                     focusPolicy: Qt.NoFocus
                     padding: 4
+                    enabled: !root.isSending
                     onClicked: root.sendTranslation()
                 }
             }
@@ -130,7 +159,7 @@ Item {
                 spacing: 5
 
                 Label {
-                    text: qsTr("Source text")
+                    text: "Source text"
                     color: sysPalette.text
                     font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
                 }
@@ -141,7 +170,8 @@ Item {
                     Layout.fillHeight: true
                     wrapMode: TextEdit.WordWrap
                     color: sysPalette.text
-                    placeholderText: qsTr("Paste or type the text you want translated...")
+                    enabled: !root.isSending
+                    placeholderText: "type here ..."
                     background: Item {}
                     Keys.onPressed: (event) => {
                         if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ControlModifier)) {
@@ -168,9 +198,27 @@ Item {
                 spacing: 5
 
                 Label {
-                    text: qsTr("Translation result")
+                    text: "Translation result"
                     color: sysPalette.text
                     font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
+                }
+
+                RowLayout {
+                    visible: root.isSending || root.hasError
+                    spacing: 6
+
+                    BusyIndicator {
+                        visible: root.isSending
+                        running: root.isSending
+                        implicitWidth: 24
+                        implicitHeight: 24
+                    }
+
+                    Label {
+                        text: root.isSending ? "Translating..." : "Translation failed"
+                        color: root.hasError ? "#c0392b" : sysPalette.text
+                        font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
+                    }
                 }
 
                 TextArea {
@@ -179,7 +227,7 @@ Item {
                     readOnly: true
                     wrapMode: TextEdit.WordWrap
                     color: sysPalette.text
-                    text: root.result || qsTr("")
+                    text: root.result || ""
                     background: Item {}
                 }
             }

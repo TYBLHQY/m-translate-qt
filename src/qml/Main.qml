@@ -15,7 +15,7 @@ ApplicationWindow {
     minimumWidth: 330
     minimumHeight: 600
     visible: true
-    title: qsTr("AI Translation Studio")
+    title: "AI Translation Studio"
     font.pixelSize: root.uiFontSize
 
     function saveWindowGeometry() {
@@ -69,7 +69,7 @@ ApplicationWindow {
 
         ApplicationWindow {
             id: settingsWindow
-            title: qsTr("设置")
+            title: "Settings"
             minimumWidth: 330
             minimumHeight: 600
             visible: true
