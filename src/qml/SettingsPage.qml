@@ -98,6 +98,7 @@ Item {
         root.config.providers = providers;
         root.config.active_provider = provider.id;
         root.persistConfig();
+        root.settingsChanged();
     }
 
     function currentProviderIndex()
@@ -132,12 +133,14 @@ Item {
             root.config.providers = [];
             root.config.active_provider = "deepseek";
             root.persistConfig();
+            root.settingsChanged();
             return;
         }
 
         root.config.providers = providers;
         root.config.active_provider = providers[0].id || providers[0].uuid || "deepseek";
         root.persistConfig();
+        root.settingsChanged();
     }
 
     function activeProvider()
@@ -254,6 +257,25 @@ Item {
         }
     }
 
+    function updateConfigValue(field, value)
+    {
+        if (!root.config) return;
+        root.config[field] = value;
+        root.persistConfig();
+        root.settingsChanged();
+    }
+
+    property var languageOptions: [
+        { value: "zh-CN", label: "Simplified Chinese" },
+        { value: "en", label: "English" },
+        { value: "de", label: "German" },
+        { value: "fr", label: "French" },
+        { value: "es", label: "Spanish" },
+        { value: "ja", label: "Japanese" },
+        { value: "ko", label: "Korean" },
+        { value: "pt", label: "Portuguese" }
+    ]
+
     property int currentSection: 0
     property var config: ({})
 
@@ -336,10 +358,42 @@ Item {
                                 stepSize: 1
                                 value: root.config.font_size ?? 13
                                 Layout.fillWidth: true
-                                onValueModified: {
-                                    if (root.config) root.config.font_size = value;
-                                    root.persistConfig();
-                                    root.settingsChanged();
+                                onValueModified: root.updateConfigValue("font_size", value)
+                            }
+                        }
+                    }
+
+                    Components.SettingsSectionPanel {
+                        sectionTitle: "Language"
+
+                        Components.SettingFieldRow {
+                            label: "First language"
+
+                            ComboBox {
+                                Layout.fillWidth: true
+                                model: root.languageOptions.map(function (item) { return item.label + " (" + item.value + ")"; })
+                                currentIndex: Math.max(0, (root.languageOptions || []).findIndex(function (item) {
+                                    return item.value === (root.config.first_language || "en");
+                                }))
+                                onActivated: {
+                                    var selected = (root.languageOptions || [])[currentIndex];
+                                    if (selected) root.updateConfigValue("first_language", selected.value);
+                                }
+                            }
+                        }
+
+                        Components.SettingFieldRow {
+                            label: "Second language"
+
+                            ComboBox {
+                                Layout.fillWidth: true
+                                model: root.languageOptions.map(function (item) { return item.label + " (" + item.value + ")"; })
+                                currentIndex: Math.max(0, (root.languageOptions || []).findIndex(function (item) {
+                                    return item.value === (root.config.second_language || "en");
+                                }))
+                                onActivated: {
+                                    var selected = (root.languageOptions || [])[currentIndex];
+                                    if (selected) root.updateConfigValue("second_language", selected.value);
                                 }
                             }
                         }
@@ -365,10 +419,22 @@ Item {
                                     Layout.fillWidth: true
                                     model: ["DeepSeek", "OpenAI"]
                                     currentIndex: 0
+                                    background: Rectangle {
+                                        color: sysPalette.base
+                                        border.color: sysPalette.mid
+                                        border.width: 1
+                                        radius: 4
+                                    }
                                 }
 
                                 Button {
                                     text: "Create"
+                                    background: Rectangle {
+                                        color: sysPalette.button
+                                        border.color: sysPalette.mid
+                                        border.width: 1
+                                        radius: 4
+                                    }
                                     onClicked: root.createProviderInstance(providerTemplateCombo.currentText.toLowerCase())
                                 }
                             }
@@ -384,6 +450,12 @@ Item {
                                 ComboBox {
                                     id: providerCombo
                                     Layout.fillWidth: true
+                                    background: Rectangle {
+                                        color: sysPalette.base
+                                        border.color: sysPalette.mid
+                                        border.width: 1
+                                        radius: 4
+                                    }
                                     model: (root.config && root.config.providers) ? root.config.providers.map(function (item) {
                                         var label = item.name || item.id || "Provider";
                                         return item.enabled === false ? label + " (disabled)" : label;
@@ -395,6 +467,7 @@ Item {
                                         if (!root.config || !root.config.providers || !root.config.providers[currentIndex]) return;
                                         root.config.active_provider = root.config.providers[currentIndex].id;
                                         root.persistConfig();
+                                        root.settingsChanged();
                                     }
                                 }
 
@@ -408,12 +481,19 @@ Item {
                                         provider.enabled = checked;
                                         root.config.providers = (root.config.providers || []).slice();
                                         root.persistConfig();
+                                        root.settingsChanged();
                                     }
                                 }
 
                                 Button {
                                     text: "Delete"
                                     enabled: (root.config && root.config.providers && root.config.providers.length > 1)
+                                    background: Rectangle {
+                                        color: sysPalette.button
+                                        border.color: sysPalette.mid
+                                        border.width: 1
+                                        radius: 4
+                                    }
                                     onClicked: root.removeSelectedProvider()
                                 }
                             }
@@ -479,6 +559,12 @@ Item {
 
                                 Button {
                                     text: "Test Connection"
+                                    background: Rectangle {
+                                        color: sysPalette.button
+                                        border.color: sysPalette.mid
+                                        border.width: 1
+                                        radius: 4
+                                    }
                                     onClicked: root.testConnection()
                                 }
                             }
@@ -513,6 +599,12 @@ Item {
                             ComboBox {
                                 Layout.fillWidth: true
                                 model: ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-chat", "deepseek-reasoner"]
+                                background: Rectangle {
+                                    color: sysPalette.base
+                                    border.color: sysPalette.mid
+                                    border.width: 1
+                                    radius: 4
+                                }
                                 editable: true
                                 currentIndex: Math.max(0, ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-chat", "deepseek-reasoner"].indexOf(root.activeProvider() ? root.activeProvider().model || "deepseek-v4-flash" : "deepseek-v4-flash"))
                                 onActivated: root.updateActiveProvider("model", currentText)

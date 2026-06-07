@@ -31,6 +31,10 @@ ApplicationWindow {
     function refreshConfig() {
         root.deepSeekConfig = deepSeekConfigManager.loadConfig();
         root.uiFontSize = root.deepSeekConfig.font_size ?? 13;
+
+        if (homePage) {
+            homePage.currentConfig = root.deepSeekConfig;
+        }
     }
 
     Component.onCompleted: {
@@ -105,6 +109,7 @@ ApplicationWindow {
     HomePage {
         id: homePage
         anchors.fill: parent
+        currentConfig: root.deepSeekConfig
         onOpenSettings: root.openSettingsWindow()
     }
 }

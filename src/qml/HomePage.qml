@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 import Qt.labs.platform
 
@@ -11,6 +11,7 @@ Item {
     property string result: ""
     property bool isSending: false
     property bool hasError: false
+    property var currentConfig: deepSeekConfigManager.loadConfig()
     signal openSettings()
     readonly property real contentMargin: 5
     readonly property real layoutSpacing: 5
@@ -29,7 +30,7 @@ Item {
         root.hasError = false;
         root.result = "";
 
-        var currentConfig = deepSeekConfigManager.loadConfig();
+        var currentConfig = root.currentConfig || deepSeekConfigManager.loadConfig();
         var apiUrl = (currentConfig && currentConfig.base_url) ? currentConfig.base_url : "https://api.deepseek.com";
         apiUrl = apiUrl.replace(/\/+$/, "");
         if (!/\/chat\/completions$/i.test(apiUrl) && !/\/v1\/chat\/completions$/i.test(apiUrl))
@@ -82,9 +83,16 @@ Item {
             root.result = "Request timed out. Please try again.";
         };
 
+        var firstLanguage = (currentConfig && currentConfig.first_language) ? currentConfig.first_language : "en";
+        var secondLanguage = (currentConfig && currentConfig.second_language) ? currentConfig.second_language : "en";
+
         var payload = {
             model: (currentConfig && currentConfig.model) ? currentConfig.model : "deepseek-v4-flash",
             messages: [
+                {
+                    role: "system",
+                    content: "You are a professional translation assistant. Use " + firstLanguage + " as the primary language context and " + secondLanguage + " as the target language. Preserve the original meaning, tone, and formatting."
+                },
                 {
                     role: "user",
                     content: sourceInput.text
@@ -106,141 +114,148 @@ Item {
         anchors.margins: 5
         spacing: root.layoutSpacing
 
-        Rectangle {
+        ScrollView {
             Layout.fillWidth: true
             Layout.preferredHeight: root.availableContentHeight * 0.25
             Layout.minimumHeight: 0
-            radius: 0
-            color: sysPalette.base
-            border.color: sysPalette.mid
-            border.width: 1
+            clip: true
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-            Item {
-                id: actionButtons
-                z: 1
-                anchors.top: parent.top
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                width: 36
-
-                ToolButton {
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: 4
-                    text: "⚙"
-                    font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
-                    flat: true
-                    focusPolicy: Qt.NoFocus
-                    padding: 4
-                    onClicked: root.openSettings()
-                }
-
-                ToolButton {
-                    id: sendButton
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.margins: 4
-                    text: "➤"
-                    font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
-                    flat: true
-                    focusPolicy: Qt.NoFocus
-                    padding: 4
-                    enabled: !root.isSending
-                    onClicked: root.sendTranslation()
-                }
-            }
-
-            ColumnLayout {
+            TextArea {
+                id: sourceInput
                 anchors.fill: parent
-                anchors.margins: 5
-                spacing: 5
-
-                Label {
-                    text: "Source text"
-                    color: sysPalette.text
-                    font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
-                }
-
-                ScrollView {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    clip: true
-
-                    TextArea {
-                        id: sourceInput
-                        width: parent.width
-                        height: parent.height
-                        wrapMode: TextEdit.WordWrap
-                        color: sysPalette.text
-                        enabled: !root.isSending
-                        placeholderText: "type here ..."
-                        focus: true
-                        activeFocusOnPress: true
-                        Keys.onPressed: (event) => {
-                            if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) &&
-                                !(event.modifiers & Qt.ShiftModifier) &&
-                                !(event.modifiers & Qt.ControlModifier)) {
-                                root.sendTranslation();
-                                event.accepted = true;
-                            }
-                        }
+                wrapMode: TextEdit.WordWrap
+                color: sysPalette.text
+                enabled: !root.isSending
+                placeholderText: "type here ..."
+                focus: true
+                activeFocusOnPress: true
+                Keys.onPressed: (event) => {
+                    if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) &&
+                        !(event.modifiers & Qt.ShiftModifier) &&
+                        !(event.modifiers & Qt.ControlModifier)) {
+                        root.sendTranslation();
+                        event.accepted = true;
                     }
                 }
             }
         }
 
         Rectangle {
+            id: actionBar
             Layout.fillWidth: true
-            Layout.preferredHeight: root.availableContentHeight * 0.75
-            Layout.minimumHeight: 0
-            radius: 0
-            color: sysPalette.base
-            border.color: sysPalette.mid
-            border.width: 1
+            Layout.preferredHeight: 40
+            color: "transparent"
+            border.color: "transparent"
+            border.width: 0
 
-            ColumnLayout {
+            RowLayout {
                 anchors.fill: parent
-                anchors.margins: 5
+                anchors.margins: 4
                 spacing: 5
 
-                Label {
-                    text: "Translation result"
-                    color: sysPalette.text
-                    font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
+                ToolButton {
+                    id: settingsButton
+                    Layout.preferredWidth: 32
+                    Layout.preferredHeight: 32
+                    Layout.alignment: Qt.AlignVCenter
+                    text: "⚙"
+                    flat: true
+                    focusPolicy: Qt.NoFocus
+                    background: Rectangle {
+                        color: sysPalette.button
+                        border.color: sysPalette.mid
+                        border.width: 1
+                        radius: 4
+                    }
+                    onClicked: root.openSettings()
                 }
 
-                RowLayout {
-                    visible: root.isSending || root.hasError
-                    spacing: 6
-
-                    BusyIndicator {
-                        visible: root.isSending
-                        running: root.isSending
-                        implicitWidth: 24
-                        implicitHeight: 24
-                    }
-
-                    Label {
-                        text: root.isSending ? "Translating..." : "Translation failed"
-                        color: root.hasError ? "#c0392b" : sysPalette.text
-                        font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
-                    }
-                }
-
-                ScrollView {
+                ComboBox {
+                    id: providerCombo
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    clip: true
-
-                    TextArea {
-                        width: parent.width
-                        height: parent.height
-                        readOnly: true
-                        wrapMode: TextEdit.WordWrap
-                        color: sysPalette.text
-                        text: root.result || ""
+                    Layout.alignment: Qt.AlignVCenter
+                    implicitHeight: 32
+                    background: Rectangle {
+                        color: sysPalette.base
+                        border.color: sysPalette.mid
+                        border.width: 1
+                        radius: 4
+                    }
+                    model: (root.currentConfig && root.currentConfig.providers) ? root.currentConfig.providers
+                        .filter(function (item) { return item.enabled !== false; })
+                        .map(function (item) { return item.name || item.id || "Provider"; }) : ["DeepSeek"]
+                    currentIndex: (() => {
+                        var providers = (root.currentConfig && root.currentConfig.providers) ? root.currentConfig.providers.filter(function (item) { return item.enabled !== false; }) : [];
+                        var activeId = root.currentConfig && root.currentConfig.active_provider ? root.currentConfig.active_provider : (providers[0] && (providers[0].id || providers[0].uuid));
+                        var index = providers.findIndex(function (item) {
+                            return item.id === activeId || item.uuid === activeId;
+                        });
+                        return index >= 0 ? index : 0;
+                    })()
+                    onActivated: {
+                        var providers = (root.currentConfig && root.currentConfig.providers) ? root.currentConfig.providers.filter(function (item) { return item.enabled !== false; }) : [];
+                        var selected = providers[currentIndex];
+                        if (!selected) return;
+                        root.currentConfig.active_provider = selected.id || selected.uuid;
+                        deepSeekConfigManager.saveConfig(root.currentConfig);
+                        root.currentConfig = deepSeekConfigManager.loadConfig();
                     }
                 }
+
+                ToolButton {
+                    id: sendButton
+                    Layout.preferredWidth: 32
+                    Layout.preferredHeight: 32
+                    Layout.alignment: Qt.AlignVCenter
+                    text: "➤"
+                    flat: true
+                    focusPolicy: Qt.NoFocus
+                    enabled: !root.isSending
+                    background: Rectangle {
+                        color: sysPalette.button
+                        border.color: sysPalette.mid
+                        border.width: 1
+                        radius: 4
+                    }
+                    onClicked: root.sendTranslation()
+                }
+            }
+        }
+
+        RowLayout {
+            visible: root.isSending || root.hasError
+            spacing: 5
+
+            BusyIndicator {
+                visible: root.isSending
+                running: root.isSending
+                implicitWidth: 24
+                implicitHeight: 24
+            }
+
+            Label {
+                text: root.isSending ? "Translating..." : "Translation failed"
+                color: root.hasError ? "#c0392b" : sysPalette.text
+                font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
+            }
+        }
+
+        ScrollView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumHeight: 0
+            clip: true
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
+            TextArea {
+                anchors.fill: parent
+                readOnly: true
+                wrapMode: TextEdit.WordWrap
+                color: sysPalette.text
+                text: root.result || ""
             }
         }
     }

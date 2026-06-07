@@ -69,14 +69,25 @@ public:
         config["providers"] = providers;
         config["active_provider"] = settings.value("providers/active", QStringLiteral("deepseek")).toString();
 
-        const QVariantMap firstProvider = providers.isEmpty() ? defaultProvider : providers.first().toMap();
-        config["base_url"] = firstProvider.value("base_url", settings.value("deepseek/base_url", QStringLiteral("https://api.deepseek.com"))).toString();
-        config["api_key"] = firstProvider.value("api_key", settings.value("deepseek/api_key", QString())).toString();
-        config["model"] = firstProvider.value("model", settings.value("deepseek/model", QStringLiteral("deepseek-v4-flash"))).toString();
-        config["temperature"] = firstProvider.value("temperature", settings.value("deepseek/temperature", 0.2)).toDouble();
-        config["provider_options"] = firstProvider.value("provider_options", QString()).toString();
-        config["headers"] = firstProvider.value("headers", QStringLiteral("{}")).toString();
+        const QString activeProviderId = settings.value("providers/active", QStringLiteral("deepseek")).toString();
+        QVariantMap activeProvider = providers.isEmpty() ? defaultProvider : providers.first().toMap();
+        for (const QVariant &entry : providers) {
+            QVariantMap candidate = entry.toMap();
+            if (candidate.value("id").toString() == activeProviderId || candidate.value("uuid").toString() == activeProviderId) {
+                activeProvider = candidate;
+                break;
+            }
+        }
+
+        config["base_url"] = activeProvider.value("base_url", settings.value("deepseek/base_url", QStringLiteral("https://api.deepseek.com"))).toString();
+        config["api_key"] = activeProvider.value("api_key", settings.value("deepseek/api_key", QString())).toString();
+        config["model"] = activeProvider.value("model", settings.value("deepseek/model", QStringLiteral("deepseek-v4-flash"))).toString();
+        config["temperature"] = activeProvider.value("temperature", settings.value("deepseek/temperature", 0.2)).toDouble();
+        config["provider_options"] = activeProvider.value("provider_options", QString()).toString();
+        config["headers"] = activeProvider.value("headers", QStringLiteral("{}")).toString();
         config["font_size"] = settings.value("ui/font_size", 13).toInt();
+        config["first_language"] = settings.value("ui/first_language", QStringLiteral("en")).toString();
+        config["second_language"] = settings.value("ui/second_language", QStringLiteral("en")).toString();
         return config;
     }
 
@@ -160,6 +171,8 @@ public:
         settings.setValue("deepseek/model", currentProvider.value("model", config.value("model", QStringLiteral("deepseek-v4-flash"))));
         settings.setValue("deepseek/temperature", currentProvider.value("temperature", config.value("temperature", 0.2)));
         settings.setValue("ui/font_size", config.value("font_size", 13));
+        settings.setValue("ui/first_language", config.value("first_language", QStringLiteral("en")));
+        settings.setValue("ui/second_language", config.value("second_language", QStringLiteral("en")));
         settings.sync();
         return settings.status() == QSettings::NoError;
     }
