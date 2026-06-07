@@ -1,0 +1,4 @@
+module m.translate.qt.components
+SettingsHeader 1.0 SettingsHeader.qml
+SettingFieldRow 1.0 SettingFieldRow.qml
+SettingsSectionPanel 1.0 SettingsSectionPanel.qml

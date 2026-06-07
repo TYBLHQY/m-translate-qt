@@ -19,6 +19,11 @@ qt_add_qml_module(appm-translate-qt
         src/qml/Main.qml
         src/qml/HomePage.qml
         src/qml/SettingsPage.qml
+        src/qml/components/SettingsHeader.qml
+        src/qml/components/SettingFieldRow.qml
+        src/qml/components/SettingsSectionPanel.qml
+    RESOURCES
+        src/qml/components/qmldir
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

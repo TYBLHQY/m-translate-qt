@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qt.labs.platform
+import "components" as Components
 
 Item {
     id: root
@@ -37,25 +38,10 @@ Item {
         anchors.margins: 5
         spacing: 8
 
-        RowLayout {
+        Components.SettingsHeader {
             Layout.fillWidth: true
-            spacing: 8
-
-            Button {
-                text: "Back"
-                onClicked: root.backRequested()
-            }
-
-            Label {
-                text: "Settings Center"
-                color: sysPalette.windowText
-                font.pixelSize: 28
-                font.bold: true
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
+            title: "Settings Center"
+            onBackRequested: root.backRequested()
         }
 
         ButtonGroup {
@@ -97,40 +83,21 @@ Item {
                 ColumnLayout {
                     spacing: 6
 
-                    GroupBox {
-                        title: "Interface"
-                        label: Label {
-                            text: parent.title
-                            font.bold: true
-                            font.pixelSize: 14
-                            color: sysPalette.windowText
-                        }
-                        Layout.fillWidth: true
+                    Components.SettingsSectionPanel {
+                        sectionTitle: "Interface"
 
-                        ColumnLayout {
-                            width: parent.width
-                            spacing: 6
+                        Components.SettingFieldRow {
+                            label: "Font size"
 
-                            RowLayout {
+                            SpinBox {
+                                from: 9
+                                to: 18
+                                stepSize: 1
+                                value: root.config.font_size ?? 13
                                 Layout.fillWidth: true
-                                spacing: 6
-
-                                Label {
-                                    text: "Font size"
-                                    color: sysPalette.text
-                                    Layout.preferredWidth: 120
-                                }
-
-                                SpinBox {
-                                    from: 9
-                                    to: 18
-                                    stepSize: 1
-                                    value: root.config.font_size ?? 13
-                                    Layout.fillWidth: true
-                                    onValueModified: {
-                                        if (root.config) root.config.font_size = value;
-                                        root.persistConfig();
-                                    }
+                                onValueModified: {
+                                    if (root.config) root.config.font_size = value;
+                                    root.persistConfig();
                                 }
                             }
                         }
@@ -140,138 +107,86 @@ Item {
                 ColumnLayout {
                     spacing: 6
 
-                    GroupBox {
-                        title: "API Settings"
-                        label: Label {
-                            text: parent.title
-                            font.bold: true
-                            font.pixelSize: 14
-                            color: sysPalette.windowText
-                        }
-                        Layout.fillWidth: true
+                    Components.SettingsSectionPanel {
+                        sectionTitle: "API Settings"
 
-                        ColumnLayout {
-                            width: parent.width
-                            spacing: 6
+                        Components.SettingFieldRow {
+                            label: "Base URL"
 
-                            RowLayout {
+                            TextField {
                                 Layout.fillWidth: true
-                                spacing: 6
-
-                                Label {
-                                    text: "Base URL"
-                                    color: sysPalette.text
-                                    Layout.preferredWidth: 120
+                                text: root.config.base_url ?? "https://api.deepseek.com"
+                                placeholderText: "https://api.deepseek.com"
+                                background: Rectangle {
+                                    color: sysPalette.base
+                                    border.color: sysPalette.mid
+                                    radius: 4
                                 }
-
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: root.config.base_url ?? "https://api.deepseek.com"
-                                    placeholderText: "https://api.deepseek.com"
-                                    background: Rectangle {
-                                        color: sysPalette.base
-                                        border.color: sysPalette.mid
-                                        radius: 4
-                                    }
-                                    onTextEdited: {
-                                        if (root.config) root.config.base_url = text;
-                                        root.persistConfig();
-                                    }
+                                onTextEdited: {
+                                    if (root.config) root.config.base_url = text;
+                                    root.persistConfig();
                                 }
                             }
+                        }
 
-                            RowLayout {
+                        Components.SettingFieldRow {
+                            label: "API Key"
+
+                            TextField {
                                 Layout.fillWidth: true
-                                spacing: 6
-
-                                Label {
-                                    text: "API Key"
-                                    color: sysPalette.text
-                                    Layout.preferredWidth: 120
+                                echoMode: TextInput.Password
+                                text: root.config.api_key ?? ""
+                                placeholderText: "Enter your DeepSeek API key"
+                                background: Rectangle {
+                                    color: sysPalette.base
+                                    border.color: sysPalette.mid
+                                    radius: 4
                                 }
-
-                                TextField {
-                                    Layout.fillWidth: true
-                                    echoMode: TextInput.Password
-                                    text: root.config.api_key ?? ""
-                                    placeholderText: "Enter your DeepSeek API key"
-                                    background: Rectangle {
-                                        color: sysPalette.base
-                                        border.color: sysPalette.mid
-                                        radius: 4
-                                    }
-                                    onTextEdited: {
-                                        if (root.config) root.config.api_key = text;
-                                        root.persistConfig();
-                                    }
+                                onTextEdited: {
+                                    if (root.config) root.config.api_key = text;
+                                    root.persistConfig();
                                 }
                             }
                         }
                     }
 
-                    GroupBox {
-                        title: "Models and Prompts"
-                        label: Label {
-                            text: parent.title
-                            font.bold: true
-                            font.pixelSize: 14
-                            color: sysPalette.windowText
-                        }
-                        Layout.fillWidth: true
+                    Components.SettingsSectionPanel {
+                        sectionTitle: "Models and Prompts"
 
-                        ColumnLayout {
-                            width: parent.width
-                            spacing: 6
+                        Components.SettingFieldRow {
+                            label: "Model"
 
-                            RowLayout {
+                            TextField {
                                 Layout.fillWidth: true
-                                spacing: 6
-
-                                Label {
-                                    text: "Model"
-                                    color: sysPalette.text
-                                    Layout.preferredWidth: 120
+                                text: root.config.model ?? ""
+                                background: Rectangle {
+                                    color: sysPalette.base
+                                    border.color: sysPalette.mid
+                                    radius: 4
                                 }
-
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: root.config.model ?? ""
-                                    background: Rectangle {
-                                        color: sysPalette.base
-                                        border.color: sysPalette.mid
-                                        radius: 4
-                                    }
-                                    onTextEdited: {
-                                        if (root.config) root.config.model = text;
-                                        root.persistConfig();
-                                    }
+                                onTextEdited: {
+                                    if (root.config) root.config.model = text;
+                                    root.persistConfig();
                                 }
                             }
+                        }
 
-                            RowLayout {
+                        Components.SettingFieldRow {
+                            label: "System prompt"
+
+                            TextArea {
                                 Layout.fillWidth: true
-                                spacing: 6
-
-                                Label {
-                                    text: "System prompt"
-                                    color: sysPalette.text
-                                    Layout.preferredWidth: 120
+                                implicitHeight: 96
+                                wrapMode: TextEdit.WordWrap
+                                text: root.config.system_prompt ?? ""
+                                background: Rectangle {
+                                    color: sysPalette.base
+                                    border.color: sysPalette.mid
+                                    radius: 4
                                 }
-
-                                TextArea {
-                                    Layout.fillWidth: true
-                                    implicitHeight: 96
-                                    wrapMode: TextEdit.WordWrap
-                                    text: root.config.system_prompt ?? ""
-                                    background: Rectangle {
-                                        color: sysPalette.base
-                                        border.color: sysPalette.mid
-                                        radius: 4
-                                    }
-                                    onTextChanged: {
-                                        if (root.config) root.config.system_prompt = text;
-                                        root.persistConfig();
-                                    }
+                                onTextChanged: {
+                                    if (root.config) root.config.system_prompt = text;
+                                    root.persistConfig();
                                 }
                             }
                         }
