@@ -13,7 +13,10 @@ qrc_*
 ui_*
 
 # CMake / build outputs
-build/
+/build/
+/build*/
+/obj-*/
+/out/
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
@@ -22,6 +25,14 @@ Testing/
 *.ninja
 *.ninja_deps
 *.ninja_log
+
+# Debian packaging artifacts
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/files
+/debian/*.substvars
+/debian/m-translate-qt/DEBIAN/
+/debian/m-translate-qt/usr/
 
 # Common compiler / linker artifacts
 *.o

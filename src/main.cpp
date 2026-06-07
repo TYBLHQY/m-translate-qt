@@ -3,6 +3,12 @@
 #include <QQmlContext>
 #include <QSettings>
 #include <QCoreApplication>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+#include <QLocalServer>
+#include <QLocalSocket>
+#include <QRegularExpression>
+#include <QTimer>
 #include <QtQml/qqml.h>
 
 class DeepSeekConfigManager : public QObject
@@ -184,24 +190,92 @@ private:
     QQmlApplicationEngine *m_engine = nullptr;
 };
 
+namespace {
+QString serverNameForApp()
+{
+    const QString organization = QCoreApplication::organizationName().trimmed();
+    const QString application = QCoreApplication::applicationName().trimmed();
+    QString base = QStringLiteral("%1-%2").arg(organization.isEmpty() ? QStringLiteral("app") : organization,
+                                                application.isEmpty() ? QStringLiteral("instance") : application);
+    base.replace(QRegularExpression(QStringLiteral("[^A-Za-z0-9._-]")), QStringLiteral("-"));
+    return base;
+}
+
+void toggleMainWindow(QQmlApplicationEngine &engine)
+{
+    for (QObject *object : engine.rootObjects()) {
+        if (QMetaObject::invokeMethod(object, "toggleMainWindow", Qt::DirectConnection)) {
+            return;
+        }
+    }
+}
+}
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
     QCoreApplication::setOrganizationName(QStringLiteral("m-translate-qt"));
     QCoreApplication::setApplicationName(QStringLiteral("AI Translation Studio"));
 
+    QCommandLineParser parser;
+    parser.setApplicationDescription(QStringLiteral("AI Translation Studio"));
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addOption(QCommandLineOption(QStringList() << QStringLiteral("toggle"),
+                                        QStringLiteral("Toggle the main window.")));
+    parser.process(app);
+
+    const QString socketName = serverNameForApp();
+    QLocalServer *server = new QLocalServer(&app);
+    const bool isPrimaryInstance = server->listen(socketName);
+
+    if (!isPrimaryInstance) {
+        QLocalSocket socket;
+        socket.connectToServer(socketName);
+        if (socket.waitForConnected(1000)) {
+            socket.write(parser.isSet(QStringLiteral("toggle")) ? "toggle" : "show");
+            socket.flush();
+            return 0;
+        }
+    }
+
     QQmlApplicationEngine engine;
     DeepSeekConfigManager *configManager = new DeepSeekConfigManager(&app);
     configManager->setEngine(&engine);
     qmlRegisterSingletonInstance<DeepSeekConfigManager>("m.translate.qt", 1, 0, "DeepSeekConfigManager", configManager);
     engine.rootContext()->setContextProperty("deepSeekConfigManager", configManager);
+
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
+
+    QObject::connect(server, &QLocalServer::newConnection, &app, [&engine, server]() {
+        QLocalSocket *client = server->nextPendingConnection();
+        if (!client) {
+            return;
+        }
+
+        QObject::connect(client, &QLocalSocket::readyRead, client, [client, &engine]() {
+            const QByteArray payload = client->readAll().trimmed();
+            if (payload == "toggle") {
+                toggleMainWindow(engine);
+            }
+            client->disconnectFromServer();
+        });
+
+        QObject::connect(client, &QLocalSocket::disconnected, client, &QObject::deleteLater);
+    });
+
     engine.loadFromModule("m.translate.qt", "Main");
+
+    QTimer::singleShot(0, &app, [&engine, &parser]() {
+        if (parser.isSet(QStringLiteral("toggle"))) {
+            toggleMainWindow(engine);
+        }
+    });
 
     return app.exec();
 }

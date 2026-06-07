@@ -42,8 +42,32 @@ target_link_libraries(appm-translate-qt
 )
 
 include(GNUInstallDirs)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/m-translate-qt.desktop.in
+    ${CMAKE_CURRENT_BINARY_DIR}/m-translate-qt.desktop
+    @ONLY
+)
+
 install(TARGETS appm-translate-qt
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/m-translate-qt.desktop
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
+)
+
+install(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/assets/icon.png
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps
+    RENAME m-translate-qt.png
+)
+
+install(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/assets/icon.png
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
+    RENAME m-translate-qt.png
 )

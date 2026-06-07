@@ -49,6 +49,16 @@ ApplicationWindow {
     onWidthChanged: if (root.visible) root.saveWindowGeometry()
     onHeightChanged: if (root.visible) root.saveWindowGeometry()
 
+    function toggleMainWindow() {
+        if (root.visible) {
+            root.hide();
+        } else {
+            root.show();
+            root.raise();
+            root.requestActivate();
+        }
+    }
+
     function openSettingsWindow() {
         const savedSettingsGeometry = DeepSeekConfigManager.loadWindowGeometry("settings");
         const settingsWindow = settingsWindowComponent.createObject(root, {

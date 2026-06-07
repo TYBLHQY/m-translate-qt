@@ -1,0 +1,15 @@
+Source: m-translate-qt
+Section: utils
+Priority: optional
+Maintainer: m-translate-qt Team <dev@example.invalid>
+Build-Depends: debhelper-compat (= 13), dh-cmake, cmake, ninja-build,
+ qt6-base-dev, qt6-declarative-dev
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+
+Package: m-translate-qt
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Suggests: desktop-file-utils, hicolor-icon-theme
+Description: Qt 6 translation assistant
+ A desktop application for translation and DeepSeek-backed prompt workflows.

@@ -1,0 +1,7 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_CMAKE_INSTALL_PREFIX = /usr
+
+%:
+	dh $@ --buildsystem=cmake --parallel

@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=M-Translate-QT
+Comment=AI translation desktop application
+Exec=@CMAKE_INSTALL_FULL_BINDIR@/appm-translate-qt --toggle
+TryExec=@CMAKE_INSTALL_FULL_BINDIR@/appm-translate-qt
+Icon=m-translate-qt
+Terminal=false
+Categories=Utility;
+Keywords=translation;ai;translate;assistant;
+StartupNotify=true
+NoDisplay=false
+Actions=Toggle;
+
+[Desktop Action Toggle]
+Name=Toggle Window
+Exec=@CMAKE_INSTALL_FULL_BINDIR@/appm-translate-qt --toggle
+Icon=m-translate-qt
