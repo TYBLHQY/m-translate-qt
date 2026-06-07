@@ -5,10 +5,41 @@ CMakeLists.txt.user
 *.qbs.user
 *.qbs.user.*
 *.autosave
+*.qmlc
+*.jsc
+*.qm
+moc_*
+qrc_*
+ui_*
 
-# Build output
+# CMake / build outputs
 build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+Testing/
+*.ninja
+*.ninja_deps
+*.ninja_log
+
+# Common compiler / linker artifacts
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
 
 # Local tool / editor settings
 .claude/
 .vscode/
+.idea/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+*.log
