@@ -1,11 +1,12 @@
 import QtQuick
 import QtQuick.Controls
+import m.translate.qt 1.0
 
 ApplicationWindow {
     id: root
 
-    property var deepSeekConfig: deepSeekConfigManager.loadConfig()
-    property var homeWindowGeometry: deepSeekConfigManager.loadWindowGeometry("home")
+    property var deepSeekConfig: DeepSeekConfigManager.loadConfig()
+    property var homeWindowGeometry: DeepSeekConfigManager.loadWindowGeometry("home")
     property int uiFontSize: root.deepSeekConfig ? (root.deepSeekConfig.font_size ?? 13) : 13
 
     x: root.homeWindowGeometry.x ?? 100
@@ -19,7 +20,7 @@ ApplicationWindow {
     font.pixelSize: root.uiFontSize
 
     function saveWindowGeometry() {
-        deepSeekConfigManager.saveWindowGeometry(
+        DeepSeekConfigManager.saveWindowGeometry(
             "home",
             root.x,
             root.y,
@@ -29,7 +30,7 @@ ApplicationWindow {
     }
 
     function refreshConfig() {
-        root.deepSeekConfig = deepSeekConfigManager.loadConfig();
+        root.deepSeekConfig = DeepSeekConfigManager.loadConfig();
         root.uiFontSize = root.deepSeekConfig.font_size ?? 13;
 
         if (homePage) {
@@ -39,7 +40,7 @@ ApplicationWindow {
 
     Component.onCompleted: {
         root.refreshConfig();
-        deepSeekConfigManager.saveConfig(root.deepSeekConfig);
+        DeepSeekConfigManager.saveConfig(root.deepSeekConfig);
         root.saveWindowGeometry();
     }
 
@@ -48,6 +49,25 @@ ApplicationWindow {
     onWidthChanged: if (root.visible) root.saveWindowGeometry()
     onHeightChanged: if (root.visible) root.saveWindowGeometry()
 
+    function toggleMainWindow() {
+        if (root.visible) {
+            root.hide();
+        } else {
+            root.show();
+            root.raise();
+            root.requestActivate();
+        }
+    }
+
+    Shortcut {
+        sequence: root.deepSeekConfig && root.deepSeekConfig.shortcuts
+            ? (root.deepSeekConfig.shortcuts.main_window_toggle || "Ctrl+Shift+Space")
+            : "Ctrl+Shift+Space"
+        context: Qt.ApplicationShortcut
+        enabled: !(root.deepSeekConfig && root.deepSeekConfig.shortcuts && root.deepSeekConfig.shortcuts.main_window_toggle_enabled === false)
+        onActivated: root.toggleMainWindow()
+    }
+
     Shortcut {
         sequence: "Ctrl+,"
         context: Qt.ApplicationShortcut
@@ -55,7 +75,7 @@ ApplicationWindow {
     }
 
     function openSettingsWindow() {
-        const savedSettingsGeometry = deepSeekConfigManager.loadWindowGeometry("settings");
+        const savedSettingsGeometry = DeepSeekConfigManager.loadWindowGeometry("settings");
         const settingsWindow = settingsWindowComponent.createObject(root, {
             x: savedSettingsGeometry.x ?? Math.max(24, root.x + 32),
             y: savedSettingsGeometry.y ?? Math.max(24, root.y + 32),
@@ -80,7 +100,7 @@ ApplicationWindow {
             flags: Qt.Dialog
 
             function saveWindowGeometry() {
-                deepSeekConfigManager.saveWindowGeometry(
+                DeepSeekConfigManager.saveWindowGeometry(
                     "settings",
                     settingsWindow.x,
                     settingsWindow.y,

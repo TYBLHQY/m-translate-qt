@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import m.translate.qt 1.0
 import Qt.labs.platform
 import "components" as Components
 
@@ -253,8 +254,66 @@ Item {
     function persistConfig()
     {
         if (root.config) {
-            deepSeekConfigManager.saveConfig(root.config);
+            DeepSeekConfigManager.saveConfig(root.config);
         }
+    }
+
+    function shortcutFromEvent(event)
+    {
+        var parts = [];
+
+        if (event.modifiers & Qt.ControlModifier) parts.push("Ctrl");
+        if (event.modifiers & Qt.AltModifier) parts.push("Alt");
+        if (event.modifiers & Qt.ShiftModifier) parts.push("Shift");
+        if (event.modifiers & Qt.MetaModifier) parts.push("Meta");
+
+        var key = "";
+        if (event.key === Qt.Key_Space) {
+            key = "Space";
+        } else if (event.key === Qt.Key_Control || event.key === Qt.Key_Alt || event.key === Qt.Key_Shift || event.key === Qt.Key_Meta) {
+            return "";
+        } else {
+            if (event.key >= Qt.Key_A && event.key <= Qt.Key_Z) {
+                key = String.fromCharCode(event.key);
+            } else if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9) {
+                key = String.fromCharCode(event.key);
+            } else if (event.text && event.text.length > 0) {
+                key = event.text;
+            } else {
+                switch (event.key) {
+            case Qt.Key_Return:
+            case Qt.Key_Enter:
+                key = "Enter";
+                break;
+            case Qt.Key_Escape:
+                key = "Esc";
+                break;
+            case Qt.Key_Tab:
+                key = "Tab";
+                break;
+            case Qt.Key_Backspace:
+                key = "Backspace";
+                break;
+            case Qt.Key_Delete:
+                key = "Delete";
+                break;
+                default:
+                    key = String(event.key || "");
+                    break;
+                }
+            }
+        }
+
+        if (key) parts.push(key.length === 1 ? key.toUpperCase() : key);
+        return parts.join("+");
+    }
+
+    function saveShortcutSequence(textValue)
+    {
+        if (!root.config) return;
+        var shortcuts = Object.assign({}, root.config.shortcuts || {});
+        shortcuts.main_window_toggle = textValue || "Ctrl+Shift+Space";
+        root.updateConfigValue("shortcuts", shortcuts);
     }
 
     function updateConfigValue(field, value)
@@ -264,6 +323,8 @@ Item {
         root.persistConfig();
         root.settingsChanged();
     }
+
+    property bool capturingShortcut: false
 
     property var languageOptions: [
         { value: "zh-CN", label: "Simplified Chinese" },
@@ -700,7 +761,7 @@ Item {
                     spacing: 6
 
                     GroupBox {
-                        title: "Shortcuts"
+                        title: "Global shortcuts"
                         label: Label {
                             text: parent.title
                             font.bold: true
@@ -711,16 +772,60 @@ Item {
 
                         ColumnLayout {
                             width: parent.width
-                            spacing: 6
+                            spacing: 8
 
-                            Label {
-                                text: "Ctrl + Enter: start translation"
-                                color: sysPalette.text
+                            Components.SettingFieldRow {
+                                label: "Toggle main window"
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 6
+
+                                    TextField {
+                                        id: mainWindowToggleShortcutField
+                                        Layout.fillWidth: true
+                                        readOnly: true
+                                        text: (root.config && root.config.shortcuts && root.config.shortcuts.main_window_toggle) || "Ctrl+Shift+Space"
+                                        placeholderText: "Press Record, then press a key combination"
+                                        focus: false
+                                        Keys.onPressed: (event) => {
+                                            if (!root.capturingShortcut) return;
+                                            var sequence = root.shortcutFromEvent(event);
+                                            if (!sequence) return;
+                                            event.accepted = true;
+                                            root.capturingShortcut = false;
+                                            mainWindowToggleShortcutField.text = sequence;
+                                            root.saveShortcutSequence(sequence);
+                                        }
+                                    }
+
+                                    Button {
+                                        text: root.capturingShortcut ? "Stop" : "Record"
+                                        onClicked: {
+                                            root.capturingShortcut = !root.capturingShortcut;
+                                            if (root.capturingShortcut) {
+                                                mainWindowToggleShortcutField.text = "Press keys...";
+                                                mainWindowToggleShortcutField.forceActiveFocus();
+                                            }
+                                        }
+                                    }
+
+                                    CheckBox {
+                                        checked: !!(root.config && root.config.shortcuts && root.config.shortcuts.main_window_toggle_enabled === true)
+                                        text: "Enabled"
+                                        onToggled: {
+                                            var shortcuts = Object.assign({}, root.config.shortcuts || {});
+                                            shortcuts.main_window_toggle_enabled = checked;
+                                            root.updateConfigValue("shortcuts", shortcuts);
+                                        }
+                                    }
+                                }
                             }
 
                             Label {
-                                text: "Ctrl + ,: open settings"
+                                text: "Tip: use Ctrl+, to open Settings Center."
                                 color: sysPalette.text
+                                wrapMode: Text.WordWrap
                             }
                         }
                     }

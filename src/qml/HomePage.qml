@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import m.translate.qt 1.0
 import QtQuick.Layouts
 import Qt.labs.platform
 
@@ -11,7 +12,7 @@ Item {
     property string result: ""
     property bool isSending: false
     property bool hasError: false
-    property var currentConfig: deepSeekConfigManager.loadConfig()
+    property var currentConfig: DeepSeekConfigManager.loadConfig()
     signal openSettings()
     readonly property real contentMargin: 5
     readonly property real layoutSpacing: 5
@@ -30,7 +31,7 @@ Item {
         root.hasError = false;
         root.result = "";
 
-        var currentConfig = root.currentConfig || deepSeekConfigManager.loadConfig();
+        var currentConfig = root.currentConfig || DeepSeekConfigManager.loadConfig();
         var apiUrl = (currentConfig && currentConfig.base_url) ? currentConfig.base_url : "https://api.deepseek.com";
         apiUrl = apiUrl.replace(/\/+$/, "");
         if (!/\/chat\/completions$/i.test(apiUrl) && !/\/v1\/chat\/completions$/i.test(apiUrl))
@@ -199,8 +200,8 @@ Item {
                         var selected = providers[currentIndex];
                         if (!selected) return;
                         root.currentConfig.active_provider = selected.id || selected.uuid;
-                        deepSeekConfigManager.saveConfig(root.currentConfig);
-                        root.currentConfig = deepSeekConfigManager.loadConfig();
+                        DeepSeekConfigManager.saveConfig(root.currentConfig);
+                        root.currentConfig = DeepSeekConfigManager.loadConfig();
                     }
                 }
 
