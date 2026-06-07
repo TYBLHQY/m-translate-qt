@@ -19,9 +19,11 @@ GroupBox {
         color: sysPalette.windowText
     }
     Layout.fillWidth: true
+    Layout.minimumWidth: 0
 
     ColumnLayout {
         id: contentLayout
+        width: parent.width
         Layout.fillWidth: true
         Layout.minimumWidth: 0
         spacing: 6

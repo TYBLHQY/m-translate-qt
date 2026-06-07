@@ -16,19 +16,66 @@ public:
     {
         QSettings settings;
         QVariantMap config;
-        config["base_url"] = settings.value("deepseek/base_url", QStringLiteral("https://api.deepseek.com")).toString();
-        config["api_key"] = settings.value("deepseek/api_key", QString()).toString();
-        config["model"] = settings.value("deepseek/model", QStringLiteral("deepseek-v4-flash")).toString();
-        config["temperature"] = settings.value("deepseek/temperature", 0.2).toDouble();
-        config["top_p"] = settings.value("deepseek/top_p", 1.0).toDouble();
-        config["max_tokens"] = settings.value("deepseek/max_tokens", 4096).toInt();
-        config["system_prompt"] = settings.value("deepseek/system_prompt", QStringLiteral("You are a professional translation engine. Translate sentence by sentence faithfully without adding explanations.")).toString();
-        config["style"] = settings.value("deepseek/style", QStringLiteral("fluent")).toString();
-        config["glossary"] = settings.value("deepseek/glossary", true).toBool();
-        config["preserve_format"] = settings.value("deepseek/preserve_format", true).toBool();
-        config["context_mode"] = settings.value("deepseek/context_mode", QStringLiteral("document")).toString();
-        config["chunk_size"] = settings.value("deepseek/chunk_size", 1000).toInt();
-        config["consistency_mode"] = settings.value("deepseek/consistency_mode", true).toBool();
+
+        const QVariantMap defaultProvider = {
+            {"id", QStringLiteral("deepseek")},
+            {"name", QStringLiteral("DeepSeek")},
+            {"description", QStringLiteral("DeepSeek chat and reasoning models")},
+            {"base_url", QStringLiteral("https://api.deepseek.com")},
+            {"api_key", QString()},
+            {"model", QStringLiteral("deepseek-v4-flash")},
+            {"temperature", 0.2},
+            {"provider_options", QString()},
+            {"headers", QStringLiteral("{}")},
+            {"features", QVariantMap({
+                {QStringLiteral("page_translation"), true},
+                {QStringLiteral("video_subtitles"), true},
+                {QStringLiteral("selection_toolbar_translation"), true},
+                {QStringLiteral("input_translation"), true},
+                {QStringLiteral("language_detection"), true},
+                {QStringLiteral("dictionary"), true}
+            })}
+        };
+
+        QVariantList providers = settings.value("providers/list").toList();
+        if (providers.isEmpty()) {
+            providers << defaultProvider;
+        } else {
+            for (int i = 0; i < providers.size(); ++i) {
+                QVariantMap provider = providers.at(i).toMap();
+                if (!provider.contains("id")) provider["id"] = QStringLiteral("deepseek");
+                if (!provider.contains("name")) provider["name"] = QStringLiteral("DeepSeek");
+                if (!provider.contains("description")) provider["description"] = QStringLiteral("DeepSeek chat and reasoning models");
+                if (!provider.contains("base_url")) provider["base_url"] = settings.value("deepseek/base_url", QStringLiteral("https://api.deepseek.com")).toString();
+                if (!provider.contains("api_key")) provider["api_key"] = settings.value("deepseek/api_key", QString()).toString();
+                if (!provider.contains("model")) provider["model"] = settings.value("deepseek/model", QStringLiteral("deepseek-v4-flash")).toString();
+                if (!provider.contains("temperature")) provider["temperature"] = settings.value("deepseek/temperature", 0.2).toDouble();
+                if (!provider.contains("provider_options")) provider["provider_options"] = QString();
+                if (!provider.contains("headers")) provider["headers"] = QStringLiteral("{}");
+                if (!provider.contains("features")) {
+                    QVariantMap features;
+                    features["page_translation"] = true;
+                    features["video_subtitles"] = true;
+                    features["selection_toolbar_translation"] = true;
+                    features["input_translation"] = true;
+                    features["language_detection"] = true;
+                    features["dictionary"] = true;
+                    provider["features"] = features;
+                }
+                providers[i] = provider;
+            }
+        }
+
+        config["providers"] = providers;
+        config["active_provider"] = settings.value("providers/active", QStringLiteral("deepseek")).toString();
+
+        const QVariantMap firstProvider = providers.isEmpty() ? defaultProvider : providers.first().toMap();
+        config["base_url"] = firstProvider.value("base_url", settings.value("deepseek/base_url", QStringLiteral("https://api.deepseek.com"))).toString();
+        config["api_key"] = firstProvider.value("api_key", settings.value("deepseek/api_key", QString())).toString();
+        config["model"] = firstProvider.value("model", settings.value("deepseek/model", QStringLiteral("deepseek-v4-flash"))).toString();
+        config["temperature"] = firstProvider.value("temperature", settings.value("deepseek/temperature", 0.2)).toDouble();
+        config["provider_options"] = firstProvider.value("provider_options", QString()).toString();
+        config["headers"] = firstProvider.value("headers", QStringLiteral("{}")).toString();
         config["font_size"] = settings.value("ui/font_size", 13).toInt();
         return config;
     }
@@ -70,19 +117,48 @@ public:
     Q_INVOKABLE bool saveConfig(const QVariantMap &config)
     {
         QSettings settings;
-        settings.setValue("deepseek/base_url", config.value("base_url", QStringLiteral("https://api.deepseek.com")));
-        settings.setValue("deepseek/api_key", config.value("api_key", QString()));
-        settings.setValue("deepseek/model", config.value("model", QStringLiteral("deepseek-v4-flash")));
-        settings.setValue("deepseek/temperature", config.value("temperature", 0.2));
-        settings.setValue("deepseek/top_p", config.value("top_p", 1.0));
-        settings.setValue("deepseek/max_tokens", config.value("max_tokens", 4096));
-        settings.setValue("deepseek/system_prompt", config.value("system_prompt", QStringLiteral("You are a professional translation engine. Translate sentence by sentence faithfully without adding explanations.")));
-        settings.setValue("deepseek/style", config.value("style", QStringLiteral("fluent")));
-        settings.setValue("deepseek/glossary", config.value("glossary", true));
-        settings.setValue("deepseek/preserve_format", config.value("preserve_format", true));
-        settings.setValue("deepseek/context_mode", config.value("context_mode", QStringLiteral("document")));
-        settings.setValue("deepseek/chunk_size", config.value("chunk_size", 1000));
-        settings.setValue("deepseek/consistency_mode", config.value("consistency_mode", true));
+
+        QVariantList providers = config.value("providers").toList();
+        if (providers.isEmpty()) {
+            QVariantMap defaultProvider;
+            defaultProvider["id"] = QStringLiteral("deepseek");
+            defaultProvider["name"] = QStringLiteral("DeepSeek");
+            defaultProvider["description"] = QStringLiteral("DeepSeek chat and reasoning models");
+            defaultProvider["base_url"] = config.value("base_url", QStringLiteral("https://api.deepseek.com"));
+            defaultProvider["api_key"] = config.value("api_key", QString());
+            defaultProvider["model"] = config.value("model", QStringLiteral("deepseek-v4-flash"));
+            defaultProvider["temperature"] = config.value("temperature", 0.2);
+            defaultProvider["provider_options"] = config.value("provider_options", QString());
+            defaultProvider["headers"] = config.value("headers", QStringLiteral("{}"));
+            QVariantMap features;
+            features["page_translation"] = true;
+            features["video_subtitles"] = true;
+            features["selection_toolbar_translation"] = true;
+            features["input_translation"] = true;
+            features["language_detection"] = true;
+            features["dictionary"] = true;
+            defaultProvider["features"] = features;
+            providers << defaultProvider;
+        }
+
+        const QVariantMap fallbackProvider = providers.isEmpty() ? QVariantMap() : providers.first().toMap();
+        const QString activeProviderId = config.value("active_provider", fallbackProvider.value("id", QStringLiteral("deepseek"))).toString();
+        QVariantMap currentProvider = fallbackProvider;
+
+        for (const QVariant &entry : providers) {
+            QVariantMap candidate = entry.toMap();
+            if (candidate.value("id").toString() == activeProviderId) {
+                currentProvider = candidate;
+                break;
+            }
+        }
+
+        settings.setValue("providers/list", providers);
+        settings.setValue("providers/active", activeProviderId);
+        settings.setValue("deepseek/base_url", currentProvider.value("base_url", config.value("base_url", QStringLiteral("https://api.deepseek.com"))));
+        settings.setValue("deepseek/api_key", currentProvider.value("api_key", config.value("api_key", QString())));
+        settings.setValue("deepseek/model", currentProvider.value("model", config.value("model", QStringLiteral("deepseek-v4-flash"))));
+        settings.setValue("deepseek/temperature", currentProvider.value("temperature", config.value("temperature", 0.2)));
         settings.setValue("ui/font_size", config.value("font_size", 13));
         settings.sync();
         return settings.status() == QSettings::NoError;

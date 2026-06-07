@@ -86,17 +86,11 @@ Item {
             model: (currentConfig && currentConfig.model) ? currentConfig.model : "deepseek-v4-flash",
             messages: [
                 {
-                    role: "system",
-                    content: (currentConfig && currentConfig.system_prompt) ? currentConfig.system_prompt : "You are a professional translation engine. Translate sentence by sentence faithfully without adding explanations."
-                },
-                {
                     role: "user",
                     content: sourceInput.text
                 }
             ],
-            temperature: (currentConfig && currentConfig.temperature !== undefined) ? currentConfig.temperature : 0.2,
-            top_p: (currentConfig && currentConfig.top_p !== undefined) ? currentConfig.top_p : 1.0,
-            max_tokens: (currentConfig && currentConfig.max_tokens) ? currentConfig.max_tokens : 4096
+            temperature: (currentConfig && currentConfig.temperature !== undefined) ? currentConfig.temperature : 0.2
         };
 
         xhr.send(JSON.stringify(payload));

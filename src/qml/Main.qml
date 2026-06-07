@@ -15,7 +15,7 @@ ApplicationWindow {
     minimumWidth: 330
     minimumHeight: 600
     visible: true
-    title: "AI Translation Studio"
+    title: qsTr("AI Translation Studio")
     font.pixelSize: root.uiFontSize
 
     function saveWindowGeometry() {
@@ -55,8 +55,8 @@ ApplicationWindow {
         const settingsWindow = settingsWindowComponent.createObject(root, {
             x: savedSettingsGeometry.x ?? Math.max(24, root.x + 32),
             y: savedSettingsGeometry.y ?? Math.max(24, root.y + 32),
-            width: savedSettingsGeometry.width ?? Math.min(root.width, 980),
-            height: savedSettingsGeometry.height ?? Math.min(root.height, 760)
+            width: Math.max(savedSettingsGeometry.width ?? 980, 800),
+            height: Math.max(savedSettingsGeometry.height ?? 760, 600)
         });
 
         if (settingsWindow) {
@@ -69,8 +69,8 @@ ApplicationWindow {
 
         ApplicationWindow {
             id: settingsWindow
-            title: "Settings"
-            minimumWidth: 330
+            title: qsTr("设置")
+            minimumWidth: 800
             minimumHeight: 600
             visible: true
             flags: Qt.Dialog
