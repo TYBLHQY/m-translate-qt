@@ -1,0 +1,14 @@
+# Qt Creator / Qt project local files
+CMakeLists.txt.user
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.autosave
+
+# Build output
+build/
+
+# Local tool / editor settings
+.claude/
+.vscode/
