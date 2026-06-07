@@ -104,7 +104,7 @@ Item {
                     anchors.top: parent.top
                     anchors.margins: 4
                     text: "⚙"
-                    font.pixelSize: 14
+                    font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
                     flat: true
                     focusPolicy: Qt.NoFocus
                     padding: 4
@@ -116,7 +116,7 @@ Item {
                     anchors.bottom: parent.bottom
                     anchors.margins: 4
                     text: "➤"
-                    font.pixelSize: 14
+                    font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
                     flat: true
                     focusPolicy: Qt.NoFocus
                     padding: 4
@@ -132,7 +132,7 @@ Item {
                 Label {
                     text: qsTr("Source text")
                     color: sysPalette.text
-                    font.pixelSize: 13
+                    font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
                 }
 
                 TextArea {
@@ -170,7 +170,7 @@ Item {
                 Label {
                     text: qsTr("Translation result")
                     color: sysPalette.text
-                    font.pixelSize: 13
+                    font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
                 }
 
                 TextArea {

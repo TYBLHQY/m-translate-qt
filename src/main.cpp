@@ -2,12 +2,17 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QSettings>
+#include <QTranslator>
+#include <QCoreApplication>
+#include <QLocale>
 
 class DeepSeekConfigManager : public QObject
 {
     Q_OBJECT
 public:
     explicit DeepSeekConfigManager(QObject *parent = nullptr) : QObject(parent) {}
+
+    void setEngine(QQmlApplicationEngine *engine) { m_engine = engine; }
 
     Q_INVOKABLE QVariantMap loadConfig() const
     {
@@ -26,7 +31,38 @@ public:
         config["context_mode"] = settings.value("deepseek/context_mode", QStringLiteral("document")).toString();
         config["chunk_size"] = settings.value("deepseek/chunk_size", 1000).toInt();
         config["consistency_mode"] = settings.value("deepseek/consistency_mode", true).toBool();
+        config["language"] = settings.value("ui/language", QStringLiteral("system")).toString();
+        config["font_size"] = settings.value("ui/font_size", 13).toInt();
         return config;
+    }
+
+    Q_INVOKABLE QString currentLanguage() const
+    {
+        QSettings settings;
+        return settings.value("ui/language", QStringLiteral("system")).toString();
+    }
+
+    Q_INVOKABLE bool setLanguage(const QString &language)
+    {
+        QSettings settings;
+        const QString value = language.isEmpty() ? QStringLiteral("system") : language;
+        settings.setValue("ui/language", value);
+        settings.sync();
+
+        QCoreApplication::removeTranslator(&m_translator);
+        const QString localeName = value == QLatin1String("system")
+            ? QLocale::system().name().replace('_', '-')
+            : value;
+
+        const bool useEnglish = localeName.startsWith("en", Qt::CaseInsensitive) || value == QLatin1String("en");
+        if (useEnglish && m_translator.load(QStringLiteral(":/translations/m-translate-qt_en.qm")))
+        {
+            QCoreApplication::installTranslator(&m_translator);
+        }
+
+        if (m_engine)
+            m_engine->retranslate();
+        return settings.status() == QSettings::NoError;
     }
 
     Q_INVOKABLE QVariantMap loadWindowGeometry() const
@@ -79,9 +115,15 @@ public:
         settings.setValue("deepseek/context_mode", config.value("context_mode", QStringLiteral("document")));
         settings.setValue("deepseek/chunk_size", config.value("chunk_size", 1000));
         settings.setValue("deepseek/consistency_mode", config.value("consistency_mode", true));
+        settings.setValue("ui/language", config.value("language", QStringLiteral("system")));
+        settings.setValue("ui/font_size", config.value("font_size", 13));
         settings.sync();
         return settings.status() == QSettings::NoError;
     }
+
+private:
+    QTranslator m_translator;
+    QQmlApplicationEngine *m_engine = nullptr;
 };
 
 int main(int argc, char *argv[])
@@ -92,6 +134,8 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     DeepSeekConfigManager configManager;
+    configManager.setEngine(&engine);
+    configManager.setLanguage(configManager.currentLanguage());
     engine.rootContext()->setContextProperty("deepSeekConfigManager", &configManager);
     QObject::connect(
         &engine,

@@ -10,13 +10,16 @@ Item {
 
     function persistConfig()
     {
-        if (root.config)
+        if (root.config) {
             deepSeekConfigManager.saveConfig(root.config);
+            root.settingsChanged();
+        }
     }
 
     property int currentSection: 0
     property var config: ({})
 
+    signal settingsChanged()
     signal backRequested()
 
     Shortcut {
@@ -102,19 +105,29 @@ Item {
                             width: parent.width
                             spacing: 6
 
-                            CheckBox {
-                                text: qsTr("自动保存翻译结果")
-                                checked: true
-                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 6
 
-                            CheckBox {
-                                text: qsTr("启动时显示欢迎页")
-                                checked: true
-                            }
+                                Label {
+                                    text: qsTr("Language")
+                                    color: sysPalette.text
+                                    Layout.preferredWidth: 120
+                                }
 
-                            CheckBox {
-                                text: qsTr("显示实时字数统计")
-                                checked: false
+                                ComboBox {
+                                    id: languageCombo
+                                    model: ["system", "en", "zh-cn"]
+                                    currentIndex: ["system", "en", "zh-cn"].indexOf(root.config.language ?? "system")
+                                    Layout.fillWidth: true
+                                    onActivated: {
+                                        if (root.config) {
+                                            root.config.language = currentText;
+                                            deepSeekConfigManager.setLanguage(currentText);
+                                            root.persistConfig();
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -127,10 +140,27 @@ Item {
                             width: parent.width
                             spacing: 6
 
-                            Label {
-                                text: qsTr("主题与显示习惯可在后续版本中继续扩展。")
-                                color: sysPalette.text
-                                wrapMode: Label.WordWrap
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 6
+
+                                Label {
+                                    text: qsTr("Font size")
+                                    color: sysPalette.text
+                                    Layout.preferredWidth: 120
+                                }
+
+                                SpinBox {
+                                    from: 9
+                                    to: 18
+                                    stepSize: 1
+                                    value: root.config.font_size ?? 13
+                                    Layout.fillWidth: true
+                                    onValueModified: {
+                                        if (root.config) root.config.font_size = value;
+                                        root.persistConfig();
+                                    }
+                                }
                             }
                         }
                     }

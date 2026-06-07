@@ -6,6 +6,7 @@ ApplicationWindow {
 
     property var deepSeekConfig: deepSeekConfigManager.loadConfig()
     property var homeWindowGeometry: deepSeekConfigManager.loadWindowGeometry("home")
+    property int uiFontSize: root.deepSeekConfig ? (root.deepSeekConfig.font_size ?? 13) : 13
 
     x: root.homeWindowGeometry.x ?? 100
     y: root.homeWindowGeometry.y ?? 100
@@ -15,6 +16,7 @@ ApplicationWindow {
     minimumHeight: 600
     visible: true
     title: qsTr("AI Translation Studio")
+    font.pixelSize: root.uiFontSize
 
     function saveWindowGeometry() {
         deepSeekConfigManager.saveWindowGeometry(
@@ -26,7 +28,13 @@ ApplicationWindow {
         );
     }
 
+    function refreshConfig() {
+        root.deepSeekConfig = deepSeekConfigManager.loadConfig();
+        root.uiFontSize = root.deepSeekConfig.font_size ?? 13;
+    }
+
     Component.onCompleted: {
+        root.refreshConfig();
         deepSeekConfigManager.saveConfig(root.deepSeekConfig);
         root.saveWindowGeometry();
     }
@@ -88,6 +96,7 @@ ApplicationWindow {
             SettingsPage {
                 anchors.fill: parent
                 config: root.deepSeekConfig
+                onSettingsChanged: root.refreshConfig()
                 onBackRequested: settingsWindow.close()
             }
         }
