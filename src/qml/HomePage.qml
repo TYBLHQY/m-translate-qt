@@ -9,11 +9,10 @@ Item {
     SystemPalette { id: sysPalette }
 
     property string result: ""
+    signal openSettings()
     readonly property real contentMargin: 5
     readonly property real layoutSpacing: 5
     readonly property real availableContentHeight: Math.max(0, root.height - 2 * contentMargin - layoutSpacing)
-
-    signal openSettings()
 
     function sendTranslation()
     {
@@ -81,11 +80,6 @@ Item {
         color: sysPalette.window
     }
 
-    Shortcut {
-        sequence: "Ctrl+,"
-        onActivated: root.openSettings()
-    }
-
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 5
@@ -99,6 +93,36 @@ Item {
             color: sysPalette.base
             border.color: sysPalette.mid
             border.width: 1
+
+            Item {
+                id: actionButtons
+                z: 2
+                anchors.fill: parent
+
+                ToolButton {
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 4
+                    text: "⚙"
+                    font.pixelSize: 14
+                    flat: true
+                    focusPolicy: Qt.NoFocus
+                    padding: 4
+                    onClicked: root.openSettings()
+                }
+
+                ToolButton {
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.margins: 4
+                    text: "➤"
+                    font.pixelSize: 14
+                    flat: true
+                    focusPolicy: Qt.NoFocus
+                    padding: 4
+                    onClicked: root.sendTranslation()
+                }
+            }
 
             ColumnLayout {
                 anchors.fill: parent

@@ -31,22 +31,34 @@ public:
 
     Q_INVOKABLE QVariantMap loadWindowGeometry() const
     {
+        return loadWindowGeometry(QStringLiteral("home"));
+    }
+
+    Q_INVOKABLE QVariantMap loadWindowGeometry(const QString &windowName) const
+    {
         QSettings settings;
+        const QString prefix = QStringLiteral("window/%1/").arg(windowName);
         QVariantMap geometry;
-        geometry["x"] = settings.value("window/x", 100).toInt();
-        geometry["y"] = settings.value("window/y", 100).toInt();
-        geometry["width"] = settings.value("window/width", 330).toInt();
-        geometry["height"] = settings.value("window/height", 600).toInt();
+        geometry["x"] = settings.value(prefix + QStringLiteral("x"), 100).toInt();
+        geometry["y"] = settings.value(prefix + QStringLiteral("y"), 100).toInt();
+        geometry["width"] = settings.value(prefix + QStringLiteral("width"), 330).toInt();
+        geometry["height"] = settings.value(prefix + QStringLiteral("height"), 600).toInt();
         return geometry;
     }
 
     Q_INVOKABLE bool saveWindowGeometry(int x, int y, int width, int height)
     {
+        return saveWindowGeometry(QStringLiteral("home"), x, y, width, height);
+    }
+
+    Q_INVOKABLE bool saveWindowGeometry(const QString &windowName, int x, int y, int width, int height)
+    {
         QSettings settings;
-        settings.setValue("window/x", x);
-        settings.setValue("window/y", y);
-        settings.setValue("window/width", width);
-        settings.setValue("window/height", height);
+        const QString prefix = QStringLiteral("window/%1/").arg(windowName);
+        settings.setValue(prefix + QStringLiteral("x"), x);
+        settings.setValue(prefix + QStringLiteral("y"), y);
+        settings.setValue(prefix + QStringLiteral("width"), width);
+        settings.setValue(prefix + QStringLiteral("height"), height);
         settings.sync();
         return settings.status() == QSettings::NoError;
     }

@@ -5,12 +5,12 @@ ApplicationWindow {
     id: root
 
     property var deepSeekConfig: deepSeekConfigManager.loadConfig()
-    property var savedWindowGeometry: deepSeekConfigManager.loadWindowGeometry()
+    property var homeWindowGeometry: deepSeekConfigManager.loadWindowGeometry("home")
 
-    x: root.savedWindowGeometry.x ?? 100
-    y: root.savedWindowGeometry.y ?? 100
-    width: root.savedWindowGeometry.width ?? 330
-    height: root.savedWindowGeometry.height ?? 600
+    x: root.homeWindowGeometry.x ?? 100
+    y: root.homeWindowGeometry.y ?? 100
+    width: root.homeWindowGeometry.width ?? 330
+    height: root.homeWindowGeometry.height ?? 600
     minimumWidth: 330
     minimumHeight: 600
     visible: true
@@ -18,6 +18,7 @@ ApplicationWindow {
 
     function saveWindowGeometry() {
         deepSeekConfigManager.saveWindowGeometry(
+            "home",
             root.x,
             root.y,
             Math.max(root.width, root.minimumWidth),
@@ -35,32 +36,66 @@ ApplicationWindow {
     onWidthChanged: if (root.visible) root.saveWindowGeometry()
     onHeightChanged: if (root.visible) root.saveWindowGeometry()
 
+    Shortcut {
+        sequence: "Ctrl+,"
+        context: Qt.ApplicationShortcut
+        onActivated: root.openSettingsWindow()
+    }
+
+    function openSettingsWindow() {
+        const savedSettingsGeometry = deepSeekConfigManager.loadWindowGeometry("settings");
+        const settingsWindow = settingsWindowComponent.createObject(root, {
+            x: savedSettingsGeometry.x ?? Math.max(24, root.x + 32),
+            y: savedSettingsGeometry.y ?? Math.max(24, root.y + 32),
+            width: savedSettingsGeometry.width ?? Math.min(root.width, 980),
+            height: savedSettingsGeometry.height ?? Math.min(root.height, 760)
+        });
+
+        if (settingsWindow) {
+            settingsWindow.show();
+        }
+    }
+
+    Component {
+        id: settingsWindowComponent
+
+        ApplicationWindow {
+            id: settingsWindow
+            title: qsTr("设置")
+            minimumWidth: 330
+            minimumHeight: 600
+            visible: true
+            flags: Qt.Dialog
+
+            function saveWindowGeometry() {
+                deepSeekConfigManager.saveWindowGeometry(
+                    "settings",
+                    settingsWindow.x,
+                    settingsWindow.y,
+                    Math.max(settingsWindow.width, settingsWindow.minimumWidth),
+                    Math.max(settingsWindow.height, settingsWindow.minimumHeight)
+                );
+            }
+
+            Component.onCompleted: settingsWindow.saveWindowGeometry()
+            onXChanged: if (settingsWindow.visible) settingsWindow.saveWindowGeometry()
+            onYChanged: if (settingsWindow.visible) settingsWindow.saveWindowGeometry()
+            onWidthChanged: if (settingsWindow.visible) settingsWindow.saveWindowGeometry()
+            onHeightChanged: if (settingsWindow.visible) settingsWindow.saveWindowGeometry()
+
+            onClosing: destroy()
+
+            SettingsPage {
+                anchors.fill: parent
+                config: root.deepSeekConfig
+                onBackRequested: settingsWindow.close()
+            }
+        }
+    }
+
     HomePage {
         id: homePage
         anchors.fill: parent
-        onOpenSettings: settingsPopup.open()
-    }
-
-    Popup {
-        id: settingsPopup
-        modal: false
-        focus: true
-        closePolicy: Popup.CloseOnEscape | Popup.OnPressOutside
-        x: Math.max(16, (root.width - width) / 2)
-        y: Math.max(16, (root.height - height) / 2)
-        width: Math.min(root.width - 32, 980)
-        height: Math.min(root.height - 32, 760)
-        padding: 0
-
-        background: Rectangle {
-            color: palette.window
-            border.color: palette.mid
-            radius: 8
-        }
-
-        contentItem: SettingsPage {
-            config: root.deepSeekConfig
-            onBackRequested: settingsPopup.close()
-        }
+        onOpenSettings: root.openSettingsWindow()
     }
 }
