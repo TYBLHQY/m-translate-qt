@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qt.labs.platform
 
@@ -117,8 +117,11 @@ Item {
 
             Item {
                 id: actionButtons
-                z: 2
-                anchors.fill: parent
+                z: 1
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                width: 36
 
                 ToolButton {
                     anchors.right: parent.right
@@ -158,19 +161,28 @@ Item {
                     font.pixelSize: Math.max(11, parent && parent.font ? parent.font.pixelSize : Qt.application.font.pixelSize)
                 }
 
-                TextArea {
-                    id: sourceInput
+                ScrollView {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    wrapMode: TextEdit.WordWrap
-                    color: sysPalette.text
-                    enabled: !root.isSending
-                    placeholderText: "type here ..."
-                    background: Item {}
-                    Keys.onPressed: (event) => {
-                        if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ControlModifier)) {
-                            root.sendTranslation();
-                            event.accepted = true;
+                    clip: true
+
+                    TextArea {
+                        id: sourceInput
+                        width: parent.width
+                        height: parent.height
+                        wrapMode: TextEdit.WordWrap
+                        color: sysPalette.text
+                        enabled: !root.isSending
+                        placeholderText: "type here ..."
+                        focus: true
+                        activeFocusOnPress: true
+                        Keys.onPressed: (event) => {
+                            if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) &&
+                                !(event.modifiers & Qt.ShiftModifier) &&
+                                !(event.modifiers & Qt.ControlModifier)) {
+                                root.sendTranslation();
+                                event.accepted = true;
+                            }
                         }
                     }
                 }
@@ -215,14 +227,19 @@ Item {
                     }
                 }
 
-                TextArea {
+                ScrollView {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    readOnly: true
-                    wrapMode: TextEdit.WordWrap
-                    color: sysPalette.text
-                    text: root.result || ""
-                    background: Item {}
+                    clip: true
+
+                    TextArea {
+                        width: parent.width
+                        height: parent.height
+                        readOnly: true
+                        wrapMode: TextEdit.WordWrap
+                        color: sysPalette.text
+                        text: root.result || ""
+                    }
                 }
             }
         }

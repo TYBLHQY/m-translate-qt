@@ -339,6 +339,7 @@ Item {
                                 onValueModified: {
                                     if (root.config) root.config.font_size = value;
                                     root.persistConfig();
+                                    root.settingsChanged();
                                 }
                             }
                         }
