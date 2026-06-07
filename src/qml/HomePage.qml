@@ -125,7 +125,8 @@ Item {
 
             TextArea {
                 id: sourceInput
-                anchors.fill: parent
+                width: parent.width
+                height: parent.height
                 wrapMode: TextEdit.WordWrap
                 color: sysPalette.text
                 enabled: !root.isSending
@@ -252,7 +253,8 @@ Item {
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
             TextArea {
-                anchors.fill: parent
+                width: parent.width
+                height: parent.height
                 readOnly: true
                 wrapMode: TextEdit.WordWrap
                 color: sysPalette.text

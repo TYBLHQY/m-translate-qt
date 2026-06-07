@@ -49,31 +49,6 @@ ApplicationWindow {
     onWidthChanged: if (root.visible) root.saveWindowGeometry()
     onHeightChanged: if (root.visible) root.saveWindowGeometry()
 
-    function toggleMainWindow() {
-        if (root.visible) {
-            root.hide();
-        } else {
-            root.show();
-            root.raise();
-            root.requestActivate();
-        }
-    }
-
-    Shortcut {
-        sequence: root.deepSeekConfig && root.deepSeekConfig.shortcuts
-            ? (root.deepSeekConfig.shortcuts.main_window_toggle || "Ctrl+Shift+Space")
-            : "Ctrl+Shift+Space"
-        context: Qt.ApplicationShortcut
-        enabled: !(root.deepSeekConfig && root.deepSeekConfig.shortcuts && root.deepSeekConfig.shortcuts.main_window_toggle_enabled === false)
-        onActivated: root.toggleMainWindow()
-    }
-
-    Shortcut {
-        sequence: "Ctrl+,"
-        context: Qt.ApplicationShortcut
-        onActivated: root.openSettingsWindow()
-    }
-
     function openSettingsWindow() {
         const savedSettingsGeometry = DeepSeekConfigManager.loadWindowGeometry("settings");
         const settingsWindow = settingsWindowComponent.createObject(root, {

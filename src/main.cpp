@@ -90,10 +90,6 @@ public:
         config["first_language"] = settings.value("ui/first_language", QStringLiteral("en")).toString();
         config["second_language"] = settings.value("ui/second_language", QStringLiteral("en")).toString();
 
-        QVariantMap shortcuts;
-        shortcuts["main_window_toggle"] = settings.value("shortcuts/main_window_toggle", QStringLiteral("Ctrl+Shift+Space")).toString();
-        shortcuts["main_window_toggle_enabled"] = settings.value("shortcuts/main_window_toggle_enabled", false).toBool();
-        config["shortcuts"] = shortcuts;
         return config;
     }
 
@@ -179,14 +175,6 @@ public:
         settings.setValue("ui/font_size", config.value("font_size", 13));
         settings.setValue("ui/first_language", config.value("first_language", QStringLiteral("en")));
         settings.setValue("ui/second_language", config.value("second_language", QStringLiteral("en")));
-
-        QVariantMap shortcuts = config.value("shortcuts").toMap();
-        if (shortcuts.isEmpty()) {
-            shortcuts["main_window_toggle"] = QStringLiteral("Ctrl+Shift+Space");
-            shortcuts["main_window_toggle_enabled"] = false;
-        }
-        settings.setValue("shortcuts/main_window_toggle", shortcuts.value("main_window_toggle", QStringLiteral("Ctrl+Shift+Space")));
-        settings.setValue("shortcuts/main_window_toggle_enabled", shortcuts.value("main_window_toggle_enabled", false));
 
         settings.sync();
         return settings.status() == QSettings::NoError;
